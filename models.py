@@ -1,12 +1,15 @@
-from sqlalchemy import Table, String, Integer, Column, TIMESTAMP, ForeignKey
+from sqlalchemy import String, Integer, Column, TIMESTAMP, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
 
 
-class Fetches(Table):
+class Fetches(Base):
     FETCH_ID = Column(Integer, primary_key=True, nullable=False, autoincrement=True, unique=True)
     FETCH_DATE = Column(TIMESTAMP, nullable=False)
 
 
-class Games(Table):
+class Games(Base):
     GAME_ID = Column(Integer, primary_key=True, nullable=False, unique=True)
     GAME_TITLE = Column(String, nullable=False)
     PRICE = Column(Integer)
@@ -17,7 +20,7 @@ class Games(Table):
     CARDS = Column(Integer)
 
 
-class Statistics(Table):
+class Statistics(Base):
     STAT_ID = Column(Integer, primary_key=True, nullable=False, autoincrement=True, unique=True)
     FETCH_ID = Column(Integer, ForeignKey(Fetches.FETCH_ID))
     GAME_ID = Column(Integer, ForeignKey(Games.GAME_ID))
