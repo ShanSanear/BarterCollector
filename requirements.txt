@@ -1,4 +1,1 @@
-pandas
-psycopg2
-sqlalchemy
-alembic
+requests

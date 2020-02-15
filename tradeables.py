@@ -1,43 +1,33 @@
+from argparse import ArgumentParser, Namespace
 import json
-import os
 from datetime import datetime
 from pathlib import Path
-import pandas
-import sqlalchemy
-from sqlalchemy import create_engine
+from typing import Union
+
 import requests
-from sqlalchemy.orm import sessionmaker, Session
-
-from models import Fetches, Games, Statistics
 
 
-def get_postgres_engine():
-    engine_type = 'postgresql'
-    username = os.getenv("USERNAME")
-    password = os.getenv("PASSWORD")
-    database = os.getenv("DATABASE")
-    server_url = os.getenv("SERVER_URL")
-    conn_string = f"{engine_type}://{username}:{password}@{server_url}/{database}"
-    return create_engine(conn_string)
+def parse_arguments() -> Namespace:
+    parser = ArgumentParser()
+    parser.add_argument('--user_id', required=True, type=str,
+                        help="Id of the user on barter, found in path after '/u/' in path to profile")
+    parser.add_argument('--output_folder', required=True, type=Path,
+                        help="Output folder, where files named tradeables_%d-%m-%Y_%H-%M-%S.json "
+                             "will be saved as raw data")
+    return parser.parse_args()
 
 
-class Rolling:
-    def __init__(self, session):
-        self.session = session
-        self.fetch = None
-
-    def create_fetch_instance(self):
-        self.fetch = Fetches(FETCH_DATE=datetime.now())
-        self.session.add(self.fetch)
-        self.session.commit()
-
-    def add_game(self):
-        game = Games(GAME_ID=1, GAME_TITLE="A", PRICE=999, RELEASE_YEAR=2010, REVIEWS_POSITIVE=80, REVIEWS_TOTAL=2222,
-                     ACHIEVEMENTS=100, CARDS=1)
-        statistics = Statistics(FETCH_ID=self.fetch, GAME_ID=game, TRADEABLES=100, WISHLIST=100, LIBRARY=100)
+def get_tradeable_json(user_id: Union[str, int], output_path: Path):
+    tradeables = requests.get(f"https://barter.vg/u/{user_id}/t/json/").json()
+    output_path.write_text(json.dumps(tradeables, indent=4), encoding='utf-8')
 
 
-engine = get_postgres_engine()
-session = Session(bind=engine)
-roll = Rolling(session)
-roll.create_fetch_instance()
+def main():
+    args = parse_arguments()
+    current_date = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+    output_path = args.output_folder / Path(f"tradeables_{current_date}").with_suffix('.json')
+    get_tradeable_json(args.user_id, output_path)
+
+
+if __name__ == '__main__':
+    main()
