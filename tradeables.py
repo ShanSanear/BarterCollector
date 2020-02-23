@@ -8,6 +8,8 @@ from typing import Union
 import pandas as pd
 import requests
 
+DATE_FORMAT = "%d-%m-%Y_%H-%M-%S"
+
 
 def parse_arguments() -> Namespace:
     parser = ArgumentParser()
@@ -28,7 +30,7 @@ def create_dataframes_from_tradables(raw_data_folder):
     tradeable_files = Path(raw_data_folder).glob("*.json")
     filtered_data = defaultdict(dict)
     for file in tradeable_files:
-        date_in_file = datetime.strptime(file.stem, "tradeables_%d-%m-%Y_%H-%M-%S")
+        date_in_file = datetime.strptime(file.stem, f"tradeables_{DATE_FORMAT}")
         data = json.loads(file.read_text())
         steam_games = data['by_platform']['1']
         for game_key, game_data in steam_games.items():
@@ -45,7 +47,7 @@ def create_dataframes_from_tradables(raw_data_folder):
 
 def fetch_new_data():
     args = parse_arguments()
-    current_date = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+    current_date = datetime.now().strftime(DATE_FORMAT)
     output_path = args.output_folder / Path(f"tradeables_{current_date}").with_suffix('.json')
     get_tradeable_json(args.user_id, output_path)
 
