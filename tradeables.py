@@ -1,9 +1,11 @@
 from argparse import ArgumentParser, Namespace
 import json
+from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from typing import Union
 
+import pandas as pd
 import requests
 
 
@@ -22,7 +24,26 @@ def get_tradeable_json(user_id: Union[str, int], output_path: Path):
     output_path.write_text(json.dumps(tradeables, indent=4), encoding='utf-8')
 
 
-def main():
+def create_dataframes_from_tradables(raw_data_folder):
+    tradeable_files = Path(raw_data_folder).glob("*.json")
+    filtered_data = defaultdict(dict)
+    for file in tradeable_files:
+        date_in_file = datetime.strptime(file.stem, "tradeables_%d-%m-%Y_%H-%M-%S")
+        data = json.loads(file.read_text())
+        steam_games = data['by_platform']['1']
+        for game_key, game_data in steam_games.items():
+            if 'tradable' in game_data:
+                game_key_with_title = (game_key, game_data['title'])
+                filtered_data[game_key_with_title][date_in_file] = game_data
+    dfs = {game_key_with_title:
+               pd.DataFrame.from_dict(game_data, orient='index',
+                                      columns=['tradable', 'wishlist', 'library', 'blacklist'])
+           for game_key_with_title, game_data in filtered_data.items()
+           }
+    return dfs
+
+
+def fetch_new_data():
     args = parse_arguments()
     current_date = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
     output_path = args.output_folder / Path(f"tradeables_{current_date}").with_suffix('.json')
@@ -30,4 +51,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    fetch_new_data()
