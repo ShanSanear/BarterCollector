@@ -2,7 +2,6 @@ from argparse import ArgumentParser, Namespace
 import json
 from collections import defaultdict
 from datetime import datetime
-from operator import itemgetter
 from pathlib import Path
 from typing import Union
 
