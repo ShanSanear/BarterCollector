@@ -1,1 +1,21 @@
-<h1>Hello</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <label for="game">Choose a game</label>
+
+  <select id="game">
+    {% for game_key_title in games %}
+      game_key_title[0]
+      <option value={{ game_key_title[0] }}>{{ game_key_title[1]|safe }}</option>
+    {% endfor %}
+  </select>
+  {% if graph %}
+    <img src={{ graph }}/>
+  {% endif %}
+</head>
+<body>
+
+</body>
+</html>
