@@ -2,6 +2,7 @@ from argparse import ArgumentParser, Namespace
 import json
 from collections import defaultdict
 from datetime import datetime
+from operator import itemgetter
 from pathlib import Path
 from typing import Union
 
@@ -42,6 +43,8 @@ def create_dataframes_from_tradables(raw_data_folder):
                                       columns=['tradable', 'wishlist', 'library', 'blacklist'])
            for game_key_with_title, game_data in filtered_data.items()
            }
+    sorted_keys = sorted(dfs, key=lambda x: x[1].lower())
+    dfs = {key: dfs[key] for key in sorted_keys}
     return dfs
 
 
